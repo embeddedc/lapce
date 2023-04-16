@@ -68,7 +68,7 @@ use crate::{
     hover::HoverData,
     images::ImageCache,
     keypress::KeyPressData,
-    palette::{PaletteData, PaletteType, PaletteViewData},
+    palette::{PaletteData, PaletteType, PaletteViewData, PaletteStatus},
     panel::{
         PanelContainerPosition, PanelData, PanelKind, PanelOrder, PanelPosition,
     },
@@ -1607,11 +1607,21 @@ impl LapceTabData {
                 ));
             }
             LapceWorkbenchCommand::PaletteCommand => {
-                ctx.submit_command(Command::new(
-                    LAPCE_UI_COMMAND,
-                    LapceUICommand::RunPalette(Some(PaletteType::Command)),
-                    Target::Widget(self.palette.widget_id),
-                ));
+                if self.palette.status == PaletteStatus::Started {
+                    if let Some(active) = *self.main_split.active_tab {
+                        ctx.submit_command(Command::new(
+                            LAPCE_UI_COMMAND,
+                            LapceUICommand::Focus,
+                            Target::Widget(active),
+                        ));
+                    }
+                } else {
+                    ctx.submit_command(Command::new(
+                        LAPCE_UI_COMMAND,
+                        LapceUICommand::RunPalette(Some(PaletteType::Command)),
+                        Target::Widget(self.palette.widget_id),
+                    ));
+                }
             }
             LapceWorkbenchCommand::PaletteWorkspace => {
                 ctx.submit_command(Command::new(
